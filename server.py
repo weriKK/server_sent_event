@@ -30,27 +30,38 @@ from bottle import GeventServer, run
 
 import beanstalkc
 
-beanstalk = beanstalkc.Connection(host='localhost', port=11300)
+
 counter = 0
 
 @get ('/enqueue')
 def enqueue():
-	global beanstalk, counter
+	global counter
+	
+	beanstalk = beanstalkc.Connection(host='localhost', port=11300)
 	
 	for i in range(5):
-		data = "This is a message: %d" % counter
+		data = 'This is a message: %d' % counter
+		
+		beanstalk.use('client1')
 		beanstalk.put(data)
+		
+		beanstalk.use('client2')
+		beanstalk.put(data)
+				
 		counter += 1
+		
+	print '-!- Enqueued 5 messages'
 		
 	response.content_type = 'application/json'
 	response.headers['Access-Control-Allow-Origin'] = '*'
 	return { "status": "OK" }
 	
 
-@get('/datastream')
-def datastream():
-	print "Stream Connection!\n"
-	global beanstalk
+@get('/datastream/<client_id>')
+def datastream(client_id):
+	print "--> Client connected: %s" % client_id
+	
+	beanstalk = beanstalkc.Connection(host='localhost', port=11300)
 	
 	response.content_type  = 'text/event-stream;charset=UTF-8'
 	response.cache_control = 'no-cache'
@@ -58,14 +69,24 @@ def datastream():
 	
 	yield 'retry: 10000\r\n'
 	
-	while beanstalk.peek_ready() is not None:
-		job = beanstalk.reserve()
+	beanstalk.watch(client_id)
+	beanstalk.ignore('default')
+	
+	while True:
+		# reserve blocks until a job is ready, or after 5 seconds it
+		# times out and returns None
+		job = beanstalk.reserve(5)
+		if job is not None:
 		
-		yield 'data: %s\r\n\n' % job.body
-		print "Yielded: %s" % job.body
+			yield 'data: %s\r\n\n' % job.body
+			print '<-- %s: %s' % (client_id, job.body)
 
-		job.delete()	
-		sleep(6)
-
+			job.delete()
+			sleep(1)	
+		else:
+			print '<-- %s: heartbeat' % client_id
+			yield ': heartbeat\n\n'
+		
+		
 if __name__ == '__main__':
 	run(server=GeventServer)

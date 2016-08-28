@@ -42,7 +42,7 @@
 
 	<script>
 
-		var eventSource = new EventSource("http://localhost:8080/datastream");
+		var eventSource = new EventSource("http://localhost:8080/datastream/client1");
 		
 		eventSource.onmessage = function(e) {
 			noty({
