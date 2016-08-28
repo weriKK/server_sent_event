@@ -1,0 +1,62 @@
+<!--
+   bean.html
+   
+   Copyright 2016 kova <kova@kova-vm>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+   
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>untitled</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+
+<body>
+	<div>
+		<button onclick="enqueueStuff();">ENQUEUE 5</button>
+		Result:<span id="result"></span>
+	</div>
+	<div id="sse-container">
+	</div>
+
+	<script>
+		// Client-side Javascript in the HTML
+		var targetContainer = document.getElementById("sse-container");
+		var eventSource     = new EventSource("http://localhost:8080/datastream");
+		
+		eventSource.onmessage = function(e) {
+			targetContainer.innerHTML += e.data;
+			console.log(e);
+		}
+		
+		function enqueueStuff()
+		{
+			$.get( "http://localhost:8080/enqueue", function( data ) {
+				$("#result").text(data.status);
+			});
+		}
+	</script>
+</body>
+
+</html>
