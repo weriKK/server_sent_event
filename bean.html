@@ -29,7 +29,9 @@
 	<title>untitled</title>
 	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
 	<meta name="generator" content="Geany 1.23.1" />
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/animate.css">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+	<script type="text/javascript" src="js/noty/packaged/jquery.noty.packaged.min.js"></script>
 </head>
 
 <body>
@@ -37,17 +39,23 @@
 		<button onclick="enqueueStuff();">ENQUEUE 5</button>
 		Result:<span id="result"></span>
 	</div>
-	<div id="sse-container">
-	</div>
 
 	<script>
-		// Client-side Javascript in the HTML
-		var targetContainer = document.getElementById("sse-container");
-		var eventSource     = new EventSource("http://localhost:8080/datastream");
+
+		var eventSource = new EventSource("http://localhost:8080/datastream");
 		
 		eventSource.onmessage = function(e) {
-			targetContainer.innerHTML += e.data;
-			console.log(e);
+			noty({
+				layout: 'topRight',
+				type: 'success',
+				text: e.data,
+				animation: {
+					open: 	'animated flipInX', 	// Animate.css class names
+					close:  'animated flipOutX', 	// Animate.css class names
+					easing: 'swing', 				// unavailable - no need
+					speed:  500 					// unavailable - no need
+				}
+			});	
 		}
 		
 		function enqueueStuff()

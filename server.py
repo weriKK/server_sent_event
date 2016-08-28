@@ -38,7 +38,7 @@ def enqueue():
 	global beanstalk, counter
 	
 	for i in range(5):
-		data = "Next message: %d" % counter
+		data = "This is a message: %d" % counter
 		beanstalk.put(data)
 		counter += 1
 		
@@ -60,11 +60,12 @@ def datastream():
 	
 	while beanstalk.peek_ready() is not None:
 		job = beanstalk.reserve()
-		yield 'data: %s\n\n' % job.body
-		print "Yielded\n"
-		print job.body
+		
+		yield 'data: %s\r\n\n' % job.body
+		print "Yielded: %s" % job.body
+
 		job.delete()	
-		sleep(10)
+		sleep(6)
 
 if __name__ == '__main__':
 	run(server=GeventServer)
